@@ -20,17 +20,29 @@
 									"// Parse the JSON response body\r",
 									"let jsonData = pm.response.json();\r",
 									"\r",
-									"// Check if the 'status' key equals 'Record not found'\r",
-									"if (jsonData.message === \"Username/password combination invalid.\") {\r",
-									"    pm.execution.setNextRequest(\"signup-api\");\r",
-									"} \r",
+									"// // Check if the 'status' key equals 'Record not found'\r",
+									"// if (jsonData.message === \"Username/password combination invalid.\")\r",
+									"//  {\r",
+									"//     pm.execution.setNextRequest(\"signup-api\");\r",
+									"//     console.log(\"Calling Signup\")\r",
+									"// } \r",
 									"\r",
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
 									"});\r",
 									"\r",
-									"if(jsonData.status==\"Unauthorized\"){\r",
-									"console.log(\"unathorized\")\r",
+									"// if(jsonData.status==\"Unauthorized\"){\r",
+									"// console.log(\"unathorized user\")\r",
+									"// console.log(\"Calling Signup\")\r",
+									"// pm.execution.setNextRequest(\"signup-api\");\r",
+									"// Check if the 'status' key equals 'Unauthorized' or the message is \"Username/password combination invalid.\"\r",
+									"if (jsonData.message === \"Username/password combination invalid.\" || \r",
+									"    jsonData.status === \"Unauthorized\") {\r",
+									"    \r",
+									"    console.log(\"Username/password combination invalid. OR Unauthorized\");\r",
+									"    \r",
+									"    pm.execution.setNextRequest(\"signup-api\");\r",
+									"    console.log(\"Calling Signup\");\r",
 									"}\r",
 									"else{\r",
 									"var userId = jsonData.id;\r",
@@ -49,6 +61,7 @@
 									"var Token = jsonData.extra_field2;\r",
 									"console.log(\"Authorization:\"+ \"Token \"+Token);\r",
 									"pm.environment.set(\"Token\",\"Token \"+Token);\r",
+									"pm.execution.setNextRequest(\"get bookings\");\r",
 									"\r",
 									"}\r",
 									"pm.test(\"Response status code is 200 and status is success\", function () {\r",
@@ -77,10 +90,16 @@
 					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\" : \"Testing42@yopmail.com\",\r\n    \"password\":  \"Testing@123\"\r\n}\r\n\r\n",
+							"raw": "{\r\n    \"username\" : \"Testing42@yopmail.com\",\r\n    \"password\":  \"Testing@123\"\r\n}\r\n// {\r\n//     \"username\" : \"T@yopmail.com\",\r\n//     \"password\":  \"Abcd@220\"\r\n// }\r\n// {\r\n//     // \"username\" : \"random@yopmail.com\",\r\n//     // \"password\":  \"Random@123\"\r\n//     \"username\" : \"TestingNew25@yopmail.com\",\r\n//     \"password\":  \"{{password}}\"\r\n// }\r\n\r\n\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -119,6 +138,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"\r",
 									"// Parse the response body\r",
 									"var jsonData = pm.response.json();\r",
 									"\r",
@@ -173,6 +193,7 @@
 									"\r",
 									"if(jsonData.message==\"User already exist.\"){\r",
 									"    console.log(\"User already exist.\")\r",
+									"    pm.execution.setNextRequest(\"login-email-password\");\r",
 									"}\r",
 									"else{\r",
 									"var jsonData = pm.response.json();\r",
@@ -192,6 +213,7 @@
 									"var Token = jsonData.data.extra_field2;\r",
 									"console.log(\"Authorization:\"+ \"Token \"+Token);\r",
 									"pm.environment.set(\"Token\",\"Token \"+Token);\r",
+									"  pm.execution.setNextRequest(\"check-available-documents-and-payments\");\r",
 									"}\r",
 									""
 								],
@@ -204,7 +226,8 @@
 							"script": {
 								"exec": [
 									"\r",
-									"pm.environment.set(\"email\", \"TestingEmail\"+ parseInt(Math.random()*100)+\"@yopmail.com\");\r",
+									"\r",
+									"pm.environment.set(\"email\", \"TestingQA\"+ parseInt(Math.random()*100)+\"@yopmail.com\");\r",
 									"var email= pm.environment.get(\"email\");\r",
 									"console.log(\"email: \" + email)\r",
 									"\r",
@@ -212,7 +235,52 @@
 									"// var emailid= pm.environment.get(\"emailId\");\r",
 									"// console.log(\"email : \" +emailid)\r",
 									"\r",
-									"pm.environment.set(\"password\", pm.variables.replaceIn('{{$randomPassword}}'));\r",
+									"// pm.environment.set(\"password\", pm.variables.replaceIn('{{$randomPassword}}'));\r",
+									"// function generatePassword(length) {\r",
+									"//     const uppercase = \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\";\r",
+									"//     const lowercase = \"abcdefghijklmnopqrstuvwxyz\";\r",
+									"//     const numbers = \"0123456789\";\r",
+									"//     const specialChars = \"!@#$%^&*()_+-=[]{}|;:'\\\",.<>?/\";\r",
+									"\r",
+									"//     let password = \"\";\r",
+									"\r",
+									"//     // Ensure at least one character from each category\r",
+									"//     password += uppercase[Math.floor(Math.random() * uppercase.length)];\r",
+									"//     password += numbers[Math.floor(Math.random() * numbers.length)];\r",
+									"//     password += specialChars[Math.floor(Math.random() * specialChars.length)];\r",
+									"\r",
+									"//     // Fill the rest of the password with a mix of all characters\r",
+									"//     const allChars = uppercase + lowercase + numbers + specialChars;\r",
+									"//     for (let i = 3; i < length; i++) {\r",
+									"//         password += allChars[Math.floor(Math.random() * allChars.length)];\r",
+									"//     }\r",
+									"\r",
+									"//     // Shuffle the password to mix the order\r",
+									"//     password = password.split(\"\").sort(() => Math.random() - 0.5).join(\"\");\r",
+									"\r",
+									"//     return password;\r",
+									"// }\r",
+									"\r",
+									"// Define a simple password format\r",
+									"function generateSimplePassword() {\r",
+									"    return \"Abcd@\" + Math.floor(100 + Math.random() * 900); // Generates a number between 100-999\r",
+									"    // return \"Abcde@123\"\r",
+									"}\r",
+									"// function generateSimplePassword() {\r",
+									"//     let prefix = \"Random@\";  // Fixed text\r",
+									"//     let randomNumber = Math.floor(100 + Math.random() * 900); // Generates a number between 100-999\r",
+									"//     return prefix + randomNumber;\r",
+									"// }\r",
+									"\r",
+									"// Store the password in an environment variable\r",
+									"pm.environment.set(\"password\", generateSimplePassword());\r",
+									"\r",
+									"// // Store the password in an environment variable\r",
+									"// pm.environment.set(\"password\", generateSimplePassword());\r",
+									"\r",
+									"// // Generate an 8-character password\r",
+									"// pm.environment.set(\"password\", generatePassword(8));\r",
+									"// pm.environment.set(\"password\", \"samra123\");\r",
 									"var password= pm.environment.get(\"password\");\r",
 									"console.log(\"password : \" + password)\r",
 									"\r",
@@ -224,11 +292,22 @@
 									"var lastname= pm.environment.get(\"lastName\");\r",
 									"console.log(\"lastName : \" + lastname)\r",
 									"\r",
-									"pm.environment.set(\"phoneNumber\", pm.variables.replaceIn('{{$randomPhoneNumber}}'));\r",
+									"// pm.environment.set(\"phoneNumber\", pm.variables.replaceIn('{{$randomPhoneNumber}}'));\r",
+									"function generateDubaiPhoneNumber() {\r",
+									"    const prefixes = [\"50\", \"52\", \"54\", \"55\", \"56\", \"58\"]; // Common UAE mobile prefixes\r",
+									"    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];\r",
+									"    const randomNumber = Math.floor(1000000 + Math.random() * 9000000); // 7-digit number\r",
+									"    return `+971${randomPrefix}${randomNumber}`;\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"phoneNumber\", generateDubaiPhoneNumber());\r",
 									"var phoneNumber= pm.environment.get(\"phoneNumber\");\r",
 									"console.log(\"phoneNumber : \" + phoneNumber)\r",
 									"\r",
-									"pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));\r",
+									"// pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));\r",
+									"\r",
+									"// pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));\r",
+									"pm.environment.set(\"country\", \"Dubai\");\r",
 									"var country= pm.environment.get(\"country\");\r",
 									"console.log(\"country : \" + country)\r",
 									"\r",
@@ -306,113 +385,150 @@
 						},
 						"description": "Generated from cURL: curl --location 'https://ezhire.me/rental/signup/' \\\r\n--header 'Content-Type: application/json' \\\r\n--header 'Cookie: sessionid=5t76hn252tp6hsalanapd7x90mrqjnrf' \\\r\n--data-raw '{\"app_version\":\"2.0.23\",\"firebase_token\":\"\",\"country\":\"+92\",\"country_code\":\"+1\",\"currency\":\"\",\"date_of_birth\":\"01/1/1995\",\"device_id\":\"\",\"dl_issue_date\":\"01/1/1995\",\"dl_country\":\"+1\",\"email\":\"samra@yopmail.com\",\"extra_field1\":\"\",\"extra_field2\":\"\",\"fcm_key\":\"\",\"first_name\":\"testtset\",\"id\":0,\"last_name\":\"testest\",\"mobile\":\"+923352291683\",\"nationality\":\"+92\",\"os_version\":\"14\",\"password\":\"Abcd@1234\",\"payment_currency\":\"\",\"referrer_code\":\"\",\"referral_code\":\"\",\"rental_type_id\":0,\"renting_in\":1,\"RentingInCountryCode\":\"+971\",\"is_resident\":\"+92\",\"role_type\":0,\"social_uid\":\"\",\"user_source1\":\"Android\",\"telephone\":\"+124234234\",\"user_id\":0,\"username\":\"samra@yopmail.com\",\"code_number\":\"\",\"is_document_uploaded\":0,\"is_pre_booking_user\":0,\"profession_id\":0,\"referrer_id\":0}'"
 					},
-					"response": [
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Check-documents",
+			"item": [
+				{
+					"name": "check-available-documents-and-payments",
+					"event": [
 						{
-							"name": "signup-api",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Cookie",
-										"value": "sessionid=5t76hn252tp6hsalanapd7x90mrqjnrf"
-									}
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//get complete body",
+									"var jsonData = pm.response.json();",
+									"",
+									"// Retrieve email from Postman environment variables",
+									"const email = pm.environment.get(\"email\") || \"Unknown Email\"; // Default value if not",
+									"// Check conditions for \"isDocumentAvailable\" and \"isPaymentCardAdded\"",
+									"if (!jsonData.isDocumentAvailable) {",
+									"    // Log if the document is not available",
+									"    console.log(`---- Add card documents for this user from the app: ${email} ----`);",
+									"    ",
+									"    // Check if the payment card is not added",
+									"    if (jsonData.isPaymentCardAdded === 0) {",
+									"        console.log(`---- Add card for this user from the app: ${email} ----`);",
+									"    }",
+									"   // Stop the flow execution",
+									"    pm.execution.setNextRequest(\"null\");",
+									" // This will stop any further requests",
+									"    // Set the next request if needed",
+									"    // pm.execution.setNextRequest(\"get-doc-country-wise\");",
+									"} else {",
+									"    // Otherwise, proceed to the next request",
+									"    console.log(\"Proceeding to next request...\");",
+									"    pm.execution.setNextRequest(\"get bookings\");",
+									"}",
+									"",
+									"// // Check conditions for \"isDocumentAvailable\" and \"isPaymentCardAdded\"",
+									"// if (jsonData.isDocumentAvailable==false) {",
+									"//     // Log if document is not available and payment card is not added",
+									"// console.log(`----Add card documents for this user from the app: ${email}----`);",
+									"",
+									"// //pm.execution.setNextRequest(\"get-doc-country-wise\");",
+									"//     if ",
+									"//     (jsonData.isPaymentCardAdded === 0) {",
+									"//      console.log(`---Add card for this user form the app:  ${email}----`);",
+									"//    }",
+									"",
+									"   ",
+									"// }",
+									"",
+									"// else {",
+									"//     // Otherwise, proceed to the next request",
+									"//     console.log(\"Proceeding to next request...\");",
+									"//     //pm.execution.setNextRequest(\"surgeRates\");",
+									"//       pm.execution.setNextRequest(\"get bookings\");",
+									"",
+									"// }",
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Ensure 'isDocumentAvailable' is a boolean value\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.isDocumentAvailable).to.be.a('boolean');",
+									"});",
+									"",
+									"",
+									"pm.test(\"IsPaymentCardAdded, bankPaymentFlag, and isAdditionalInfoAvailable are integers\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.isPaymentCardAdded).to.be.a('number');",
+									"    pm.expect(responseData.bank_payment_flag).to.be.a('number');",
+									"    pm.expect(responseData.isAdditionalInfoAvailable).to.be.a('number');",
+									"});",
+									"",
+									""
 								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\"app_version\":\"2.0.23\",\"firebase_token\":\"\",\"country\":\"+92\",\"country_code\":\"+1\",\"currency\":\"\",\"date_of_birth\":\"01/1/1995\",\"device_id\":\"\",\"dl_issue_date\":\"01/1/1995\",\"dl_country\":\"+1\",\"email\":\"samra1@yopmail.com\",\"extra_field1\":\"\",\"extra_field2\":\"\",\"fcm_key\":\"\",\"first_name\":\"testtset\",\"id\":0,\"last_name\":\"testest\",\"mobile\":\"+923352291683\",\"nationality\":\"+92\",\"os_version\":\"14\",\"password\":\"Abcd@1234\",\"payment_currency\":\"\",\"referrer_code\":\"\",\"referral_code\":\"\",\"rental_type_id\":0,\"renting_in\":1,\"RentingInCountryCode\":\"+971\",\"is_resident\":\"+92\",\"role_type\":0,\"social_uid\":\"\",\"user_source1\":\"Android\",\"telephone\":\"+124234234\",\"user_id\":0,\"username\":\"samra1@yopmail.com\",\"code_number\":\"\",\"is_document_uploaded\":0,\"is_pre_booking_user\":0,\"profession_id\":0,\"referrer_id\":0}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "https://ezhire.me/rental/signup/",
-									"protocol": "https",
-									"host": [
-										"ezhire",
-										"me"
-									],
-									"path": [
-										"rental",
-										"signup",
-										""
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Date",
-									"value": "Fri, 08 Nov 2024 09:49:47 GMT"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Transfer-Encoding",
-									"value": "chunked"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Vary",
-									"value": "Accept, Origin"
-								},
-								{
-									"key": "Allow",
-									"value": "POST, OPTIONS"
-								},
-								{
-									"key": "P3P",
-									"value": "CP=\"ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV\""
-								},
-								{
-									"key": "cf-cache-status",
-									"value": "DYNAMIC"
-								},
-								{
-									"key": "Report-To",
-									"value": "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v4?s=qRzWJu52vVgrhzBGasayY3BKCskN5EDjE9uWKzsyEqY1NLQ%2B4UnFc6L7KCIH5MqtGK6W7f%2BdWjKs%2Fnkfo8uTAsElIKYa%2FBXQJ%2BDCR4CrS0ad9zdThAfD3FSPbok%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}"
-								},
-								{
-									"key": "NEL",
-									"value": "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}"
-								},
-								{
-									"key": "Server",
-									"value": "cloudflare"
-								},
-								{
-									"key": "CF-RAY",
-									"value": "8df4a7b02ff84d92-SIN"
-								},
-								{
-									"key": "Content-Encoding",
-									"value": "br"
-								},
-								{
-									"key": "alt-svc",
-									"value": "h3=\":443\"; ma=86400"
-								},
-								{
-									"key": "server-timing",
-									"value": "cfL4;desc=\"?proto=TCP&rtt=85595&sent=19&recv=17&lost=0&retrans=0&sent_bytes=4315&recv_bytes=2616&delivery_rate=65211&cwnd=114&unsent_bytes=0&cid=3218ac2d53245d4b&ts=12484&x=0\""
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"status\": false,\n    \"data\": null,\n    \"message\": \"User already exist.\"\n}"
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/plain"
+							},
+							{
+								"key": "Cookie",
+								"value": "sessionid=5t76hn252tp6hsalanapd7x90mrqjnrf"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{Authorization}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rental_type_id\": {{rentalTypeId}},\r\n    \"user_id\": {{userId}},\r\n    \"city_id\": {{cityid}},\r\n    \"booking_days\": 10,\r\n    \"country_code\": \"+92\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseUrl}}/UserDocumentAvailableV4/",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"UserDocumentAvailableV4",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --location --request GET 'https://ezhire.me/rental/bookingV6/?user_id=403804' \\\r\n--header 'Content-Type: text/plain' \\\r\n--header 'Cookie: sessionid=5t76hn252tp6hsalanapd7x90mrqjnrf' \\\r\n--data '{\"agreement_number\":\"\",\"airport_charges\":39.0,\"airport_id\":0,\"airport_return_id\":0,\"app_language\":1,\"app_version\":\"1.7.9\",\"babyseat_extended_amount\":0.0,\"booking_hour\":10,\"id\":0,\"Booking_Kilometers\":0.0,\"bosterseat_extended_amount\":0.0,\"car_available_id\":420,\"car_color\":\"\",\"car_image\":\"\",\"car_name\":\"\",\"name_ar\":\"\",\"car_number_plate\":\"\",\"cat_id\":2,\"change_delivery_location_reminder\":0,\"city_id\":1,\"collection_charges\":39.0,\"collection_driver_image\":\"\",\"collection_driver_name\":\"\",\"collection_driver_number\":\"\",\"confirmed_attribution\":0,\"contract_id\":0,\"customer_driver_rating\":0.0,\"DIR\":10.0,\"dr\":0.0,\"drg\":10.5,\"daily_rate\":10.0,\"deliver_rate\":35.1,\"deliver_date\":\"2023-06-02T00:00:00.000+0500\",\"deliver_date_string\":\"02/06/2023\",\"Delivery_feedback\":1,\"delivery_location_lat\":25.039776931077842,\"deliver_at\":\"25.039776931077842,55.221952870488174\",\"delivery_location\":\"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\"delivery_location_lng\":55.221952870488174,\"deliver_time\":\"2023-06-02T16:30:07.380+0500\",\"deliver_time_string\":\"16:30\",\"deposit_card_id\":0,\"discount\":0.0,\"driver_extended_amount\":0.0,\"driver_id\":0,\"driver_image\":\"\",\"driver_name\":\"\",\"driver_number\":\"\",\"early_return\":false,\"email_outstanding\":0.0,\"delivery_feedback_time\":\"\",\"extended_amount\":0.0,\"extended_days\":0,\"extended_discount\":0.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"gps_extended_amount\":0.0,\"hrg\":0.0,\"insurance\":0.0,\"insurance_extended_amount\":0.0,\"is_dispatched_booking\":0,\"MIR\":5.0,\"mr\":0.0,\"mrg\":5.0,\"millage_id\":0,\"days\":1.0,\"os_version\":\"10\",\"old_booking_charge\":{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"\",\"charge\":0.0,\"charge_type_id\":0,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":0.0,\"from_date\":\"\",\"id\":0,\"is_paid\":0,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"\",\"total_charge\":0.0,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},\"browser_name\":\"ANDROID\",\"monthly_optimization_enabled\":0,\"overtime_rate\":0.0,\"pai\":0.0,\"pai_extended_amount\":0.0,\"payment\":{\"amount\":8883.0,\"booking_id\":0,\"is_capture\":0,\"pay_id\":\"\",\"payment_action\":\"Booking Generate Android\",\"payment_currency\":\"AED\",\"status\":\"\",\"token\":\"src_hfqhdv4fkf2uve3v2epvkxexru\",\"user_id\":403169},\"payment_cc\":0.0,\"payment_type_id\":1,\"Promo_Code\":\"\",\"PROMO_CODE_ID\":0,\"rent_extended_amount\":0.0,\"rental_end_feedback\":0,\"rental_type_id\":1,\"return_city_id\":1,\"return_date\":\"2023-06-03T00:00:00.000+0500\",\"return_date_string\":\"03/06/2023\",\"return_location_lat\":25.039747769641853,\"return_at\":\"25.039747769641853,55.221952870488174\",\"collection_location\":\"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\"return_location_lng\":55.221952870488174,\"return_date_old\":\"\",\"return_time\":\"2023-06-02T00:00:07.386+0500\",\"return_time_string\":\"00:00\",\"self_pickup_id\":0,\"self_pickup_status\":0,\"self_return_id\":0,\"self_return_status\":0,\"Source\":\"ANDROID\",\"status\":1,\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"amount\":88.83,\"total_charge\":0.0,\"owner_id\":403169,\"vat_rate\":5.0,\"vendor_id\":0,\"WIR\":8.0,\"wr\":0.0,\"wrg\":8.0,\"wallet_debit_amount\":0.0,\"actual_dr\":10.0,\"actual_mr\":5.0,\"actual_wr\":8.0,\"add_driver_active\":0,\"additional_delivery_info\":\"\",\"additional_drivers\":[],\"airport_return_id_old\":0,\"babe_seater\":0.0,\"baby_dr\":25.0,\"baby_mr\":5.0,\"baby_seat_active\":0,\"baby_wr\":15.0,\"boster_dr\":25.0,\"boster_mr\":5.0,\"boster_seat\":0.0,\"boster_seat_active\":0,\"boster_wr\":15.0,\"carSelected\":{\"base_fare\":1.0,\"booking_allowed\":1,\"car_desc\":\"0\",\"id\":420,\"picture\":\"2023/05/09/c932954a-bce.jpg\",\"picture_large\":\"2023/05/09/6d2e2541-3e6.jpg\",\"picture_new_app\":\"/media/2023/05/09/7d085492-892.jpg\",\"car_name\":\"Testing\",\"car_type_id\":390,\"cat_id\":2,\"city_id\":\"1,2,3\",\"DIR\":10.0,\"dr\":10.0,\"disable_car\":0,\"hourly_rate\":1.0,\"available\":1,\"kilometer_slabs\":[],\"MIR\":5.0,\"mr\":10.0,\"monthly_rate\":5.0,\"mcr\":6.0,\"NoOfDays\":0,\"monthly_optimization_enabled\":0,\"overtime_rate\":1.0,\"seats\":5,\"slabs_charges\":[],\"sub_cat_id\":29,\"TotalCharges\":0.0,\"WIR\":8.0,\"wr\":8.0,\"booking_hrs\":[],\"isSelected\":true,\"km_price\":0.0,\"kmpd\":0.0,\"kmpm\":0.0,\"kmpw\":0.0,\"minimum_days\":1,\"security_deposit\":1.0},\"chargeCustomer\":{\"Payment_date\":\"\",\"amount\":0,\"booking_id\":0,\"charge_type\":\"\",\"charge_type_response\":0,\"currency\":\"\",\"customer_ip\":\"\",\"fort_id\":\"\",\"is_capture\":0,\"is_success\":\"\",\"merchant_reference_id\":0,\"on_card\":\"\",\"payment_action\":\"\",\"user_id\":0},\"currency\":{\"additional_driver_text\":\"\",\"airport_charges\":0.0,\"city_id\":0,\"camount\":0.0,\"country_id\":0,\"curr\":\"\",\"curr_ar\":\"\",\"damount\":0.0,\"id\":0,\"insurance_info\":\"\",\"insurance_info_ar\":\"\",\"payment_currency\":\"\",\"payment_currency_ar\":\"\",\"tax_label\":\"\",\"tax\":0,\"terms_condition\":\"\",\"how_insurance_works\":\"\",\"how_insurance_works_ar\":\"\",\"operational_hour\":10,\"rental_type_id\":0},\"charge_customer_id\":1,\"charges\":[{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Rent\",\"charge\":10.5,\"charge_type_id\":4,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":10.5,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"RentVAT\",\"charge\":0.525,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":10.5,\"on_type\":4,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":0.525,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Collection VAT\",\"charge\":1.95,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":39.0,\"on_type\":3,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":1.95,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Collection\",\"charge\":39.0,\"charge_type_id\":3,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":39.0,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Delivery VAT\",\"charge\":1.755,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":35.1,\"on_type\":11,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":1.755,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Delivery\",\"charge\":35.1,\"charge_type_id\":11,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":35.1,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"}],\"cle\":0,\"cleaning_active\":0,\"cleaning_dr\":200.0,\"cleaning_mr\":200.0,\"cleaning_wr\":200.0,\"collection_location_old\":\"\",\"collection_reminder\":0,\"credit_card_discount\":0.0,\"current_date_time\":\"2023-06-02 20:26\",\"dailyChargesBooking\":10.5,\"delivery_instructions\":\"\",\"device_unique_id\":\"\",\"dilveryChargesBooking\":35.1,\"dilveryChargesBookingStatus\":true,\"driver_dr\":25.0,\"driver_mr\":5.0,\"driver_wr\":15.0,\"Extra_day_charge\":0,\"extraHour\":0,\"extra_day_charge_flag\":0,\"extra_driver\":0.0,\"extra_field1\":\"0\",\"extra_guard\":0.0,\"fort_id\":\"\",\"gps\":0.0,\"gps_active\":0,\"gps_dr\":25.0,\"gps_mr\":5.0,\"gps_wr\":15.0,\"guard_dr\":5.0,\"guard_extended_amount\":0.0,\"guard_mr\":3.0,\"guard_wr\":4.0,\"insurance_active\":0,\"interCityCharge\":{\"charge\":0.0,\"city_id\":0,\"city_name\":\"\",\"city_name_ar\":\"\"},\"isSameDay\":false,\"is_checkout\":1,\"km_price\":0.0,\"kmpd\":0.0,\"kmpm\":0.0,\"kmpw\":0.0,\"millages\":[],\"monthly_subscription \":0,\"monthly_subscription\":0,\"monthly_enabled\":0,\"pai_active\":0,\"pai_dr\":25.0,\"pai_mr\":5.0,\"pai_wr\":15.0,\"promo_details\":{\"car_available_id\":0,\"cat_id\":0,\"Daily_Discount_Value\":0.0,\"Discount_Value\":0.0,\"is_extension\":0,\"Monthly_Discount_Value\":0.0,\"Percent_type\":0,\"promo_code\":\"\",\"id\":0,\"user_id\":0,\"Weekly_Discount_Value\":0.0,\"bin_code\":0,\"daily_discount_cap\":0.0,\"discount_title\":\"\",\"is_only_for_extension\":0,\"max_discount\":0.0,\"monthly_discount_cap\":0.0,\"status\":\"\",\"weekly_discount_cap\":0.0},\"rentChargesBooking\":10.5,\"rentChargesBookingStatus\":true,\"return_city_id_old\":0,\"security_guard_active\":0,\"selectedSlab\":{\"base_slab\":0,\"extra_hour_rate\":0.0,\"hour_rate\":0.0},\"self_pickup_id_old\":0,\"self_pickup_timings\":\"\",\"self_pickup_vendor_contact\":\"\",\"self_return_id_old\":0,\"self_return_timings\":\"\",\"self_return_vendor_contact\":\"\",\"session_id\":\"\",\"totalChargesBooking\":10.5,\"url3ds\":0,\"user_comments\":\"\"}'"
+					},
+					"response": []
 				}
 			]
 		},
@@ -445,7 +561,12 @@
 									"        console.log(\"NO bookings\");\r",
 									"    } else {\r",
 									"        console.log(\"Bookings found:\", jsonData);\r",
-									"        pm.execution.setNextRequest(\"get country/city List\"); \r",
+									"        cancel_bookingId=jsonData.id\r",
+									"        pm.environment.set(\"cancel_bookingId\", cancel_bookingId)\r",
+									"        pm.environment.get(\"cancel_bookingId\", cancel_bookingId)\r",
+									"        console.log(\"Cancel Booking ID: \", cancel_bookingId)\r",
+									"        // pm.environment.set(\"carId\", carId);\r",
+									"        pm.execution.setNextRequest(\"cancel-booking\"); \r",
 									"    }\r",
 									"});"
 								],
@@ -471,7 +592,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\"agreement_number\":\"\",\"airport_charges\":39.0,\"airport_id\":0,\"airport_return_id\":0,\"app_language\":1,\"app_version\":\"1.7.9\",\"babyseat_extended_amount\":0.0,\"booking_hour\":10,\"id\":0,\"Booking_Kilometers\":0.0,\"bosterseat_extended_amount\":0.0,\"car_available_id\":420,\"car_color\":\"\",\"car_image\":\"\",\"car_name\":\"\",\"name_ar\":\"\",\"car_number_plate\":\"\",\"cat_id\":2,\"change_delivery_location_reminder\":0,\"city_id\":1,\"collection_charges\":39.0,\"collection_driver_image\":\"\",\"collection_driver_name\":\"\",\"collection_driver_number\":\"\",\"confirmed_attribution\":0,\"contract_id\":0,\"customer_driver_rating\":0.0,\"DIR\":10.0,\"dr\":0.0,\"drg\":10.5,\"daily_rate\":10.0,\"deliver_rate\":35.1,\"deliver_date\":\"2023-06-02T00:00:00.000+0500\",\"deliver_date_string\":\"02/06/2023\",\"Delivery_feedback\":1,\"delivery_location_lat\":25.039776931077842,\"deliver_at\":\"25.039776931077842,55.221952870488174\",\"delivery_location\":\"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\"delivery_location_lng\":55.221952870488174,\"deliver_time\":\"2023-06-02T16:30:07.380+0500\",\"deliver_time_string\":\"16:30\",\"deposit_card_id\":0,\"discount\":0.0,\"driver_extended_amount\":0.0,\"driver_id\":0,\"driver_image\":\"\",\"driver_name\":\"\",\"driver_number\":\"\",\"early_return\":false,\"email_outstanding\":0.0,\"delivery_feedback_time\":\"\",\"extended_amount\":0.0,\"extended_days\":0,\"extended_discount\":0.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"gps_extended_amount\":0.0,\"hrg\":0.0,\"insurance\":0.0,\"insurance_extended_amount\":0.0,\"is_dispatched_booking\":0,\"MIR\":5.0,\"mr\":0.0,\"mrg\":5.0,\"millage_id\":0,\"days\":1.0,\"os_version\":\"10\",\"old_booking_charge\":{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"\",\"charge\":0.0,\"charge_type_id\":0,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":0.0,\"from_date\":\"\",\"id\":0,\"is_paid\":0,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"\",\"total_charge\":0.0,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},\"browser_name\":\"ANDROID\",\"monthly_optimization_enabled\":0,\"overtime_rate\":0.0,\"pai\":0.0,\"pai_extended_amount\":0.0,\"payment\":{\"amount\":8883.0,\"booking_id\":0,\"is_capture\":0,\"pay_id\":\"\",\"payment_action\":\"Booking Generate Android\",\"payment_currency\":\"AED\",\"status\":\"\",\"token\":\"src_hfqhdv4fkf2uve3v2epvkxexru\",\"user_id\":403169},\"payment_cc\":0.0,\"payment_type_id\":1,\"Promo_Code\":\"\",\"PROMO_CODE_ID\":0,\"rent_extended_amount\":0.0,\"rental_end_feedback\":0,\"rental_type_id\":1,\"return_city_id\":1,\"return_date\":\"2023-06-03T00:00:00.000+0500\",\"return_date_string\":\"03/06/2023\",\"return_location_lat\":25.039747769641853,\"return_at\":\"25.039747769641853,55.221952870488174\",\"collection_location\":\"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\"return_location_lng\":55.221952870488174,\"return_date_old\":\"\",\"return_time\":\"2023-06-02T00:00:07.386+0500\",\"return_time_string\":\"00:00\",\"self_pickup_id\":0,\"self_pickup_status\":0,\"self_return_id\":0,\"self_return_status\":0,\"Source\":\"ANDROID\",\"status\":1,\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"amount\":88.83,\"total_charge\":0.0,\"owner_id\":403169,\"vat_rate\":5.0,\"vendor_id\":0,\"WIR\":8.0,\"wr\":0.0,\"wrg\":8.0,\"wallet_debit_amount\":0.0,\"actual_dr\":10.0,\"actual_mr\":5.0,\"actual_wr\":8.0,\"add_driver_active\":0,\"additional_delivery_info\":\"\",\"additional_drivers\":[],\"airport_return_id_old\":0,\"babe_seater\":0.0,\"baby_dr\":25.0,\"baby_mr\":5.0,\"baby_seat_active\":0,\"baby_wr\":15.0,\"boster_dr\":25.0,\"boster_mr\":5.0,\"boster_seat\":0.0,\"boster_seat_active\":0,\"boster_wr\":15.0,\"carSelected\":{\"base_fare\":1.0,\"booking_allowed\":1,\"car_desc\":\"0\",\"id\":420,\"picture\":\"2023/05/09/c932954a-bce.jpg\",\"picture_large\":\"2023/05/09/6d2e2541-3e6.jpg\",\"picture_new_app\":\"/media/2023/05/09/7d085492-892.jpg\",\"car_name\":\"Testing\",\"car_type_id\":390,\"cat_id\":2,\"city_id\":\"1,2,3\",\"DIR\":10.0,\"dr\":10.0,\"disable_car\":0,\"hourly_rate\":1.0,\"available\":1,\"kilometer_slabs\":[],\"MIR\":5.0,\"mr\":10.0,\"monthly_rate\":5.0,\"mcr\":6.0,\"NoOfDays\":0,\"monthly_optimization_enabled\":0,\"overtime_rate\":1.0,\"seats\":5,\"slabs_charges\":[],\"sub_cat_id\":29,\"TotalCharges\":0.0,\"WIR\":8.0,\"wr\":8.0,\"booking_hrs\":[],\"isSelected\":true,\"km_price\":0.0,\"kmpd\":0.0,\"kmpm\":0.0,\"kmpw\":0.0,\"minimum_days\":1,\"security_deposit\":1.0},\"chargeCustomer\":{\"Payment_date\":\"\",\"amount\":0,\"booking_id\":0,\"charge_type\":\"\",\"charge_type_response\":0,\"currency\":\"\",\"customer_ip\":\"\",\"fort_id\":\"\",\"is_capture\":0,\"is_success\":\"\",\"merchant_reference_id\":0,\"on_card\":\"\",\"payment_action\":\"\",\"user_id\":0},\"currency\":{\"additional_driver_text\":\"\",\"airport_charges\":0.0,\"city_id\":0,\"camount\":0.0,\"country_id\":0,\"curr\":\"\",\"curr_ar\":\"\",\"damount\":0.0,\"id\":0,\"insurance_info\":\"\",\"insurance_info_ar\":\"\",\"payment_currency\":\"\",\"payment_currency_ar\":\"\",\"tax_label\":\"\",\"tax\":0,\"terms_condition\":\"\",\"how_insurance_works\":\"\",\"how_insurance_works_ar\":\"\",\"operational_hour\":10,\"rental_type_id\":0},\"charge_customer_id\":1,\"charges\":[{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Rent\",\"charge\":10.5,\"charge_type_id\":4,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":10.5,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"RentVAT\",\"charge\":0.525,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":10.5,\"on_type\":4,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":0.525,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Collection VAT\",\"charge\":1.95,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":39.0,\"on_type\":3,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":1.95,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Collection\",\"charge\":39.0,\"charge_type_id\":3,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":39.0,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Delivery VAT\",\"charge\":1.755,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":35.1,\"on_type\":11,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":1.755,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Delivery\",\"charge\":35.1,\"charge_type_id\":11,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":35.1,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"}],\"cle\":0,\"cleaning_active\":0,\"cleaning_dr\":200.0,\"cleaning_mr\":200.0,\"cleaning_wr\":200.0,\"collection_location_old\":\"\",\"collection_reminder\":0,\"credit_card_discount\":0.0,\"current_date_time\":\"2023-06-02 20:26\",\"dailyChargesBooking\":10.5,\"delivery_instructions\":\"\",\"device_unique_id\":\"\",\"dilveryChargesBooking\":35.1,\"dilveryChargesBookingStatus\":true,\"driver_dr\":25.0,\"driver_mr\":5.0,\"driver_wr\":15.0,\"Extra_day_charge\":0,\"extraHour\":0,\"extra_day_charge_flag\":0,\"extra_driver\":0.0,\"extra_field1\":\"0\",\"extra_guard\":0.0,\"fort_id\":\"\",\"gps\":0.0,\"gps_active\":0,\"gps_dr\":25.0,\"gps_mr\":5.0,\"gps_wr\":15.0,\"guard_dr\":5.0,\"guard_extended_amount\":0.0,\"guard_mr\":3.0,\"guard_wr\":4.0,\"insurance_active\":0,\"interCityCharge\":{\"charge\":0.0,\"city_id\":0,\"city_name\":\"\",\"city_name_ar\":\"\"},\"isSameDay\":false,\"is_checkout\":1,\"km_price\":0.0,\"kmpd\":0.0,\"kmpm\":0.0,\"kmpw\":0.0,\"millages\":[],\"monthly_subscription \":0,\"monthly_subscription\":0,\"monthly_enabled\":0,\"pai_active\":0,\"pai_dr\":25.0,\"pai_mr\":5.0,\"pai_wr\":15.0,\"promo_details\":{\"car_available_id\":0,\"cat_id\":0,\"Daily_Discount_Value\":0.0,\"Discount_Value\":0.0,\"is_extension\":0,\"Monthly_Discount_Value\":0.0,\"Percent_type\":0,\"promo_code\":\"\",\"id\":0,\"user_id\":0,\"Weekly_Discount_Value\":0.0,\"bin_code\":0,\"daily_discount_cap\":0.0,\"discount_title\":\"\",\"is_only_for_extension\":0,\"max_discount\":0.0,\"monthly_discount_cap\":0.0,\"status\":\"\",\"weekly_discount_cap\":0.0},\"rentChargesBooking\":10.5,\"rentChargesBookingStatus\":true,\"return_city_id_old\":0,\"security_guard_active\":0,\"selectedSlab\":{\"base_slab\":0,\"extra_hour_rate\":0.0,\"hour_rate\":0.0},\"self_pickup_id_old\":0,\"self_pickup_timings\":\"\",\"self_pickup_vendor_contact\":\"\",\"self_return_id_old\":0,\"self_return_timings\":\"\",\"self_return_vendor_contact\":\"\",\"session_id\":\"\",\"totalChargesBooking\":10.5,\"url3ds\":0,\"user_comments\":\"\"}",
+							"raw": "{\r\n    \"agreement_number\": \"\",\r\n    \"airport_charges\": 39.0,\r\n    \"airport_id\": 0,\r\n    \"airport_return_id\": 0,\r\n    \"app_language\": 1,\r\n    \"app_version\": \"1.7.9\",\r\n    \"babyseat_extended_amount\": 0.0,\r\n    \"booking_hour\": 10,\r\n    \"id\": 0,\r\n    \"Booking_Kilometers\": 0.0,\r\n    \"bosterseat_extended_amount\": 0.0,\r\n    \"car_available_id\": 420,\r\n    \"car_color\": \"\",\r\n    \"car_image\": \"\",\r\n    \"car_name\": \"\",\r\n    \"name_ar\": \"\",\r\n    \"car_number_plate\": \"\",\r\n    \"cat_id\": 2,\r\n    \"change_delivery_location_reminder\": 0,\r\n    \"city_id\": 1,\r\n    \"collection_charges\": 39.0,\r\n    \"collection_driver_image\": \"\",\r\n    \"collection_driver_name\": \"\",\r\n    \"collection_driver_number\": \"\",\r\n    \"confirmed_attribution\": 0,\r\n    \"contract_id\": 0,\r\n    \"customer_driver_rating\": 0.0,\r\n    \"DIR\": 10.0,\r\n    \"dr\": 0.0,\r\n    \"drg\": 10.5,\r\n    \"daily_rate\": 10.0,\r\n    \"deliver_rate\": 35.1,\r\n    \"deliver_date\": \"2023-06-02T00:00:00.000+0500\",\r\n    \"deliver_date_string\": \"02/06/2023\",\r\n    \"Delivery_feedback\": 1,\r\n    \"delivery_location_lat\": 25.039776931077842,\r\n    \"deliver_at\": \"25.039776931077842,55.221952870488174\",\r\n    \"delivery_location\": \"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\r\n    \"delivery_location_lng\": 55.221952870488174,\r\n    \"deliver_time\": \"2023-06-02T16:30:07.380+0500\",\r\n    \"deliver_time_string\": \"16:30\",\r\n    \"deposit_card_id\": 0,\r\n    \"discount\": 0.0,\r\n    \"driver_extended_amount\": 0.0,\r\n    \"driver_id\": 0,\r\n    \"driver_image\": \"\",\r\n    \"driver_name\": \"\",\r\n    \"driver_number\": \"\",\r\n    \"early_return\": false,\r\n    \"email_outstanding\": 0.0,\r\n    \"delivery_feedback_time\": \"\",\r\n    \"extended_amount\": 0.0,\r\n    \"extended_days\": 0,\r\n    \"extended_discount\": 0.0,\r\n    \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n    \"gps_extended_amount\": 0.0,\r\n    \"hrg\": 0.0,\r\n    \"insurance\": 0.0,\r\n    \"insurance_extended_amount\": 0.0,\r\n    \"is_dispatched_booking\": 0,\r\n    \"MIR\": 5.0,\r\n    \"mr\": 0.0,\r\n    \"mrg\": 5.0,\r\n    \"millage_id\": 0,\r\n    \"days\": 1.0,\r\n    \"os_version\": \"10\",\r\n    \"old_booking_charge\": {\r\n        \"AddOnRate\": 0.0,\r\n        \"desc\": \"\",\r\n        \"AddonIcon\": \"\",\r\n        \"type_name\": \"\",\r\n        \"charge\": 0.0,\r\n        \"charge_type_id\": 0,\r\n        \"comments\": \"\",\r\n        \"dr\": 0.0,\r\n        \"days_extended\": 0,\r\n        \"ExtendedAmount\": 0.0,\r\n        \"frequency\": 0.0,\r\n        \"from_date\": \"\",\r\n        \"id\": 0,\r\n        \"is_paid\": 0,\r\n        \"mr\": 0.0,\r\n        \"on_amount\": 0.0,\r\n        \"on_type\": 0,\r\n        \"refund_to\": \"\",\r\n        \"Source\": \"ANDROID\",\r\n        \"to_date\": \"\",\r\n        \"total_charge\": 0.0,\r\n        \"TotalChargeOld\": 0.0,\r\n        \"wr\": 0.0,\r\n        \"active\": 1,\r\n        \"activeDays\": 0,\r\n        \"active_dates\": \"\",\r\n        \"add\": true,\r\n        \"amount\": 0.0,\r\n        \"area_title\": \"\",\r\n        \"booking_id\": 0,\r\n        \"carDays\": false,\r\n        \"collectioncahrges\": 0.0,\r\n        \"countNumber\": 0,\r\n        \"currency\": \"\",\r\n        \"extraDayConversation\": 1,\r\n        \"from_date_addon\": \"\",\r\n        \"isSelected\": false,\r\n        \"order1\": 1,\r\n        \"promo_code_id\": 0,\r\n        \"sameDayActive\": false,\r\n        \"showAddonInSummary\": false,\r\n        \"showSwitchView\": false,\r\n        \"to_date_addon\": \"\"\r\n    },\r\n    \"browser_name\": \"ANDROID\",\r\n    \"monthly_optimization_enabled\": 0,\r\n    \"overtime_rate\": 0.0,\r\n    \"pai\": 0.0,\r\n    \"pai_extended_amount\": 0.0,\r\n    \"payment\": {\r\n        \"amount\": 8883.0,\r\n        \"booking_id\": 0,\r\n        \"is_capture\": 0,\r\n        \"pay_id\": \"\",\r\n        \"payment_action\": \"Booking Generate Android\",\r\n        \"payment_currency\": \"AED\",\r\n        \"status\": \"\",\r\n        \"token\": \"src_hfqhdv4fkf2uve3v2epvkxexru\",\r\n        \"user_id\": 403169\r\n    },\r\n    \"payment_cc\": 0.0,\r\n    \"payment_type_id\": 1,\r\n    \"Promo_Code\": \"\",\r\n    \"PROMO_CODE_ID\": 0,\r\n    \"rent_extended_amount\": 0.0,\r\n    \"rental_end_feedback\": 0,\r\n    \"rental_type_id\": 1,\r\n    \"return_city_id\": 1,\r\n    \"return_date\": \"2023-06-03T00:00:00.000+0500\",\r\n    \"return_date_string\": \"03/06/2023\",\r\n    \"return_location_lat\": 25.039747769641853,\r\n    \"return_at\": \"25.039747769641853,55.221952870488174\",\r\n    \"collection_location\": \"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\r\n    \"return_location_lng\": 55.221952870488174,\r\n    \"return_date_old\": \"\",\r\n    \"return_time\": \"2023-06-02T00:00:07.386+0500\",\r\n    \"return_time_string\": \"00:00\",\r\n    \"self_pickup_id\": 0,\r\n    \"self_pickup_status\": 0,\r\n    \"self_return_id\": 0,\r\n    \"self_return_status\": 0,\r\n    \"Source\": \"ANDROID\",\r\n    \"status\": 1,\r\n    \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n    \"amount\": 88.83,\r\n    \"total_charge\": 0.0,\r\n    \"owner_id\": 403169,\r\n    \"vat_rate\": 5.0,\r\n    \"vendor_id\": 0,\r\n    \"WIR\": 8.0,\r\n    \"wr\": 0.0,\r\n    \"wrg\": 8.0,\r\n    \"wallet_debit_amount\": 0.0,\r\n    \"actual_dr\": 10.0,\r\n    \"actual_mr\": 5.0,\r\n    \"actual_wr\": 8.0,\r\n    \"add_driver_active\": 0,\r\n    \"additional_delivery_info\": \"\",\r\n    \"additional_drivers\": [],\r\n    \"airport_return_id_old\": 0,\r\n    \"babe_seater\": 0.0,\r\n    \"baby_dr\": 25.0,\r\n    \"baby_mr\": 5.0,\r\n    \"baby_seat_active\": 0,\r\n    \"baby_wr\": 15.0,\r\n    \"boster_dr\": 25.0,\r\n    \"boster_mr\": 5.0,\r\n    \"boster_seat\": 0.0,\r\n    \"boster_seat_active\": 0,\r\n    \"boster_wr\": 15.0,\r\n    \"carSelected\": {\r\n        \"base_fare\": 1.0,\r\n        \"booking_allowed\": 1,\r\n        \"car_desc\": \"0\",\r\n        \"id\": 420,\r\n        \"picture\": \"2023/05/09/c932954a-bce.jpg\",\r\n        \"picture_large\": \"2023/05/09/6d2e2541-3e6.jpg\",\r\n        \"picture_new_app\": \"/media/2023/05/09/7d085492-892.jpg\",\r\n        \"car_name\": \"Testing\",\r\n        \"car_type_id\": 390,\r\n        \"cat_id\": 2,\r\n        \"city_id\": \"1,2,3\",\r\n        \"DIR\": 10.0,\r\n        \"dr\": 10.0,\r\n        \"disable_car\": 0,\r\n        \"hourly_rate\": 1.0,\r\n        \"available\": 1,\r\n        \"kilometer_slabs\": [],\r\n        \"MIR\": 5.0,\r\n        \"mr\": 10.0,\r\n        \"monthly_rate\": 5.0,\r\n        \"mcr\": 6.0,\r\n        \"NoOfDays\": 0,\r\n        \"monthly_optimization_enabled\": 0,\r\n        \"overtime_rate\": 1.0,\r\n        \"seats\": 5,\r\n        \"slabs_charges\": [],\r\n        \"sub_cat_id\": 29,\r\n        \"TotalCharges\": 0.0,\r\n        \"WIR\": 8.0,\r\n        \"wr\": 8.0,\r\n        \"booking_hrs\": [],\r\n        \"isSelected\": true,\r\n        \"km_price\": 0.0,\r\n        \"kmpd\": 0.0,\r\n        \"kmpm\": 0.0,\r\n        \"kmpw\": 0.0,\r\n        \"minimum_days\": 1,\r\n        \"security_deposit\": 1.0\r\n    },\r\n    \"chargeCustomer\": {\r\n        \"Payment_date\": \"\",\r\n        \"amount\": 0,\r\n        \"booking_id\": 0,\r\n        \"charge_type\": \"\",\r\n        \"charge_type_response\": 0,\r\n        \"currency\": \"\",\r\n        \"customer_ip\": \"\",\r\n        \"fort_id\": \"\",\r\n        \"is_capture\": 0,\r\n        \"is_success\": \"\",\r\n        \"merchant_reference_id\": 0,\r\n        \"on_card\": \"\",\r\n        \"payment_action\": \"\",\r\n        \"user_id\": 0\r\n    },\r\n    \"currency\": {\r\n        \"additional_driver_text\": \"\",\r\n        \"airport_charges\": 0.0,\r\n        \"city_id\": 0,\r\n        \"camount\": 0.0,\r\n        \"country_id\": 0,\r\n        \"curr\": \"\",\r\n        \"curr_ar\": \"\",\r\n        \"damount\": 0.0,\r\n        \"id\": 0,\r\n        \"insurance_info\": \"\",\r\n        \"insurance_info_ar\": \"\",\r\n        \"payment_currency\": \"\",\r\n        \"payment_currency_ar\": \"\",\r\n        \"tax_label\": \"\",\r\n        \"tax\": 0,\r\n        \"terms_condition\": \"\",\r\n        \"how_insurance_works\": \"\",\r\n        \"how_insurance_works_ar\": \"\",\r\n        \"operational_hour\": 10,\r\n        \"rental_type_id\": 0\r\n    },\r\n    \"charge_customer_id\": 1,\r\n    \"charges\": [\r\n        {\r\n            \"AddOnRate\": 0.0,\r\n            \"desc\": \"\",\r\n            \"AddonIcon\": \"\",\r\n            \"type_name\": \"Rent\",\r\n            \"charge\": 10.5,\r\n            \"charge_type_id\": 4,\r\n            \"comments\": \"\",\r\n            \"dr\": 0.0,\r\n            \"days_extended\": 0,\r\n            \"ExtendedAmount\": 0.0,\r\n            \"frequency\": 1.0,\r\n            \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n            \"id\": 0,\r\n            \"is_paid\": 1,\r\n            \"mr\": 0.0,\r\n            \"on_amount\": 0.0,\r\n            \"on_type\": 0,\r\n            \"refund_to\": \"\",\r\n            \"Source\": \"ANDROID\",\r\n            \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n            \"total_charge\": 10.5,\r\n            \"TotalChargeOld\": 0.0,\r\n            \"wr\": 0.0,\r\n            \"active\": 1,\r\n            \"activeDays\": 0,\r\n            \"active_dates\": \"\",\r\n            \"add\": true,\r\n            \"amount\": 0.0,\r\n            \"area_title\": \"\",\r\n            \"booking_id\": 0,\r\n            \"carDays\": false,\r\n            \"collectioncahrges\": 0.0,\r\n            \"countNumber\": 0,\r\n            \"currency\": \"\",\r\n            \"extraDayConversation\": 1,\r\n            \"from_date_addon\": \"\",\r\n            \"isSelected\": false,\r\n            \"order1\": 1,\r\n            \"promo_code_id\": 0,\r\n            \"sameDayActive\": false,\r\n            \"showAddonInSummary\": false,\r\n            \"showSwitchView\": false,\r\n            \"to_date_addon\": \"\"\r\n        },\r\n        {\r\n            \"AddOnRate\": 0.0,\r\n            \"desc\": \"\",\r\n            \"AddonIcon\": \"\",\r\n            \"type_name\": \"RentVAT\",\r\n            \"charge\": 0.525,\r\n            \"charge_type_id\": 20,\r\n            \"comments\": \"\",\r\n            \"dr\": 0.0,\r\n            \"days_extended\": 0,\r\n            \"ExtendedAmount\": 0.0,\r\n            \"frequency\": 1.0,\r\n            \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n            \"id\": 0,\r\n            \"is_paid\": 1,\r\n            \"mr\": 0.0,\r\n            \"on_amount\": 10.5,\r\n            \"on_type\": 4,\r\n            \"refund_to\": \"\",\r\n            \"Source\": \"ANDROID\",\r\n            \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n            \"total_charge\": 0.525,\r\n            \"TotalChargeOld\": 0.0,\r\n            \"wr\": 0.0,\r\n            \"active\": 1,\r\n            \"activeDays\": 0,\r\n            \"active_dates\": \"\",\r\n            \"add\": true,\r\n            \"amount\": 0.0,\r\n            \"area_title\": \"\",\r\n            \"booking_id\": 0,\r\n            \"carDays\": false,\r\n            \"collectioncahrges\": 0.0,\r\n            \"countNumber\": 0,\r\n            \"currency\": \"\",\r\n            \"extraDayConversation\": 1,\r\n            \"from_date_addon\": \"\",\r\n            \"isSelected\": false,\r\n            \"order1\": 1,\r\n            \"promo_code_id\": 0,\r\n            \"sameDayActive\": false,\r\n            \"showAddonInSummary\": false,\r\n            \"showSwitchView\": false,\r\n            \"to_date_addon\": \"\"\r\n        },\r\n        {\r\n            \"AddOnRate\": 0.0,\r\n            \"desc\": \"\",\r\n            \"AddonIcon\": \"\",\r\n            \"type_name\": \"Collection VAT\",\r\n            \"charge\": 1.95,\r\n            \"charge_type_id\": 20,\r\n            \"comments\": \"\",\r\n            \"dr\": 0.0,\r\n            \"days_extended\": 0,\r\n            \"ExtendedAmount\": 0.0,\r\n            \"frequency\": 1.0,\r\n            \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n            \"id\": 0,\r\n            \"is_paid\": 1,\r\n            \"mr\": 0.0,\r\n            \"on_amount\": 39.0,\r\n            \"on_type\": 3,\r\n            \"refund_to\": \"\",\r\n            \"Source\": \"ANDROID\",\r\n            \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n            \"total_charge\": 1.95,\r\n            \"TotalChargeOld\": 0.0,\r\n            \"wr\": 0.0,\r\n            \"active\": 1,\r\n            \"activeDays\": 0,\r\n            \"active_dates\": \"\",\r\n            \"add\": true,\r\n            \"amount\": 0.0,\r\n            \"area_title\": \"\",\r\n            \"booking_id\": 0,\r\n            \"carDays\": false,\r\n            \"collectioncahrges\": 0.0,\r\n            \"countNumber\": 0,\r\n            \"currency\": \"\",\r\n            \"extraDayConversation\": 1,\r\n            \"from_date_addon\": \"\",\r\n            \"isSelected\": false,\r\n            \"order1\": 1,\r\n            \"promo_code_id\": 0,\r\n            \"sameDayActive\": false,\r\n            \"showAddonInSummary\": false,\r\n            \"showSwitchView\": false,\r\n            \"to_date_addon\": \"\"\r\n        },\r\n        {\r\n            \"AddOnRate\": 0.0,\r\n            \"desc\": \"\",\r\n            \"AddonIcon\": \"\",\r\n            \"type_name\": \"Collection\",\r\n            \"charge\": 39.0,\r\n            \"charge_type_id\": 3,\r\n            \"comments\": \"\",\r\n            \"dr\": 0.0,\r\n            \"days_extended\": 0,\r\n            \"ExtendedAmount\": 0.0,\r\n            \"frequency\": 1.0,\r\n            \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n            \"id\": 0,\r\n            \"is_paid\": 1,\r\n            \"mr\": 0.0,\r\n            \"on_amount\": 0.0,\r\n            \"on_type\": 0,\r\n            \"refund_to\": \"\",\r\n            \"Source\": \"ANDROID\",\r\n            \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n            \"total_charge\": 39.0,\r\n            \"TotalChargeOld\": 0.0,\r\n            \"wr\": 0.0,\r\n            \"active\": 1,\r\n            \"activeDays\": 0,\r\n            \"active_dates\": \"\",\r\n            \"add\": true,\r\n            \"amount\": 0.0,\r\n            \"area_title\": \"\",\r\n            \"booking_id\": 0,\r\n            \"carDays\": false,\r\n            \"collectioncahrges\": 0.0,\r\n            \"countNumber\": 0,\r\n            \"currency\": \"\",\r\n            \"extraDayConversation\": 1,\r\n            \"from_date_addon\": \"\",\r\n            \"isSelected\": false,\r\n            \"order1\": 1,\r\n            \"promo_code_id\": 0,\r\n            \"sameDayActive\": false,\r\n            \"showAddonInSummary\": false,\r\n            \"showSwitchView\": false,\r\n            \"to_date_addon\": \"\"\r\n        },\r\n        {\r\n            \"AddOnRate\": 0.0,\r\n            \"desc\": \"\",\r\n            \"AddonIcon\": \"\",\r\n            \"type_name\": \"Delivery VAT\",\r\n            \"charge\": 1.755,\r\n            \"charge_type_id\": 20,\r\n            \"comments\": \"\",\r\n            \"dr\": 0.0,\r\n            \"days_extended\": 0,\r\n            \"ExtendedAmount\": 0.0,\r\n            \"frequency\": 1.0,\r\n            \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n            \"id\": 0,\r\n            \"is_paid\": 1,\r\n            \"mr\": 0.0,\r\n            \"on_amount\": 35.1,\r\n            \"on_type\": 11,\r\n            \"refund_to\": \"\",\r\n            \"Source\": \"ANDROID\",\r\n            \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n            \"total_charge\": 1.755,\r\n            \"TotalChargeOld\": 0.0,\r\n            \"wr\": 0.0,\r\n            \"active\": 1,\r\n            \"activeDays\": 0,\r\n            \"active_dates\": \"\",\r\n            \"add\": true,\r\n            \"amount\": 0.0,\r\n            \"area_title\": \"\",\r\n            \"booking_id\": 0,\r\n            \"carDays\": false,\r\n            \"collectioncahrges\": 0.0,\r\n            \"countNumber\": 0,\r\n            \"currency\": \"\",\r\n            \"extraDayConversation\": 1,\r\n            \"from_date_addon\": \"\",\r\n            \"isSelected\": false,\r\n            \"order1\": 1,\r\n            \"promo_code_id\": 0,\r\n            \"sameDayActive\": false,\r\n            \"showAddonInSummary\": false,\r\n            \"showSwitchView\": false,\r\n            \"to_date_addon\": \"\"\r\n        },\r\n        {\r\n            \"AddOnRate\": 0.0,\r\n            \"desc\": \"\",\r\n            \"AddonIcon\": \"\",\r\n            \"type_name\": \"Delivery\",\r\n            \"charge\": 35.1,\r\n            \"charge_type_id\": 11,\r\n            \"comments\": \"\",\r\n            \"dr\": 0.0,\r\n            \"days_extended\": 0,\r\n            \"ExtendedAmount\": 0.0,\r\n            \"frequency\": 1.0,\r\n            \"from_date\": \"2023-06-02T00:00:00.000+0500\",\r\n            \"id\": 0,\r\n            \"is_paid\": 1,\r\n            \"mr\": 0.0,\r\n            \"on_amount\": 0.0,\r\n            \"on_type\": 0,\r\n            \"refund_to\": \"\",\r\n            \"Source\": \"ANDROID\",\r\n            \"to_date\": \"2023-06-03T00:00:00.000+0500\",\r\n            \"total_charge\": 35.1,\r\n            \"TotalChargeOld\": 0.0,\r\n            \"wr\": 0.0,\r\n            \"active\": 1,\r\n            \"activeDays\": 0,\r\n            \"active_dates\": \"\",\r\n            \"add\": true,\r\n            \"amount\": 0.0,\r\n            \"area_title\": \"\",\r\n            \"booking_id\": 0,\r\n            \"carDays\": false,\r\n            \"collectioncahrges\": 0.0,\r\n            \"countNumber\": 0,\r\n            \"currency\": \"\",\r\n            \"extraDayConversation\": 1,\r\n            \"from_date_addon\": \"\",\r\n            \"isSelected\": false,\r\n            \"order1\": 1,\r\n            \"promo_code_id\": 0,\r\n            \"sameDayActive\": false,\r\n            \"showAddonInSummary\": false,\r\n            \"showSwitchView\": false,\r\n            \"to_date_addon\": \"\"\r\n        }\r\n    ],\r\n    \"cle\": 0,\r\n    \"cleaning_active\": 0,\r\n    \"cleaning_dr\": 200.0,\r\n    \"cleaning_mr\": 200.0,\r\n    \"cleaning_wr\": 200.0,\r\n    \"collection_location_old\": \"\",\r\n    \"collection_reminder\": 0,\r\n    \"credit_card_discount\": 0.0,\r\n    \"current_date_time\": \"2023-06-02 20:26\",\r\n    \"dailyChargesBooking\": 10.5,\r\n    \"delivery_instructions\": \"\",\r\n    \"device_unique_id\": \"\",\r\n    \"dilveryChargesBooking\": 35.1,\r\n    \"dilveryChargesBookingStatus\": true,\r\n    \"driver_dr\": 25.0,\r\n    \"driver_mr\": 5.0,\r\n    \"driver_wr\": 15.0,\r\n    \"Extra_day_charge\": 0,\r\n    \"extraHour\": 0,\r\n    \"extra_day_charge_flag\": 0,\r\n    \"extra_driver\": 0.0,\r\n    \"extra_field1\": \"0\",\r\n    \"extra_guard\": 0.0,\r\n    \"fort_id\": \"\",\r\n    \"gps\": 0.0,\r\n    \"gps_active\": 0,\r\n    \"gps_dr\": 25.0,\r\n    \"gps_mr\": 5.0,\r\n    \"gps_wr\": 15.0,\r\n    \"guard_dr\": 5.0,\r\n    \"guard_extended_amount\": 0.0,\r\n    \"guard_mr\": 3.0,\r\n    \"guard_wr\": 4.0,\r\n    \"insurance_active\": 0,\r\n    \"interCityCharge\": {\r\n        \"charge\": 0.0,\r\n        \"city_id\": 0,\r\n        \"city_name\": \"\",\r\n        \"city_name_ar\": \"\"\r\n    },\r\n    \"isSameDay\": false,\r\n    \"is_checkout\": 1,\r\n    \"km_price\": 0.0,\r\n    \"kmpd\": 0.0,\r\n    \"kmpm\": 0.0,\r\n    \"kmpw\": 0.0,\r\n    \"millages\": [],\r\n    \"monthly_subscription \": 0,\r\n    \"monthly_subscription\": 0,\r\n    \"monthly_enabled\": 0,\r\n    \"pai_active\": 0,\r\n    \"pai_dr\": 25.0,\r\n    \"pai_mr\": 5.0,\r\n    \"pai_wr\": 15.0,\r\n    \"promo_details\": {\r\n        \"car_available_id\": 0,\r\n        \"cat_id\": 0,\r\n        \"Daily_Discount_Value\": 0.0,\r\n        \"Discount_Value\": 0.0,\r\n        \"is_extension\": 0,\r\n        \"Monthly_Discount_Value\": 0.0,\r\n        \"Percent_type\": 0,\r\n        \"promo_code\": \"\",\r\n        \"id\": 0,\r\n        \"user_id\": 0,\r\n        \"Weekly_Discount_Value\": 0.0,\r\n        \"bin_code\": 0,\r\n        \"daily_discount_cap\": 0.0,\r\n        \"discount_title\": \"\",\r\n        \"is_only_for_extension\": 0,\r\n        \"max_discount\": 0.0,\r\n        \"monthly_discount_cap\": 0.0,\r\n        \"status\": \"\",\r\n        \"weekly_discount_cap\": 0.0\r\n    },\r\n    \"rentChargesBooking\": 10.5,\r\n    \"rentChargesBookingStatus\": true,\r\n    \"return_city_id_old\": 0,\r\n    \"security_guard_active\": 0,\r\n    \"selectedSlab\": {\r\n        \"base_slab\": 0,\r\n        \"extra_hour_rate\": 0.0,\r\n        \"hour_rate\": 0.0\r\n    },\r\n    \"self_pickup_id_old\": 0,\r\n    \"self_pickup_timings\": \"\",\r\n    \"self_pickup_vendor_contact\": \"\",\r\n    \"self_return_id_old\": 0,\r\n    \"self_return_timings\": \"\",\r\n    \"self_return_vendor_contact\": \"\",\r\n    \"session_id\": \"\",\r\n    \"totalChargesBooking\": 10.5,\r\n    \"url3ds\": 0,\r\n    \"user_comments\": \"\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -495,6 +616,56 @@
 							]
 						},
 						"description": "Generated from cURL: curl --location --request GET 'https://ezhire.me/rental/bookingV6/?user_id=403804' \\\r\n--header 'Content-Type: text/plain' \\\r\n--header 'Cookie: sessionid=5t76hn252tp6hsalanapd7x90mrqjnrf' \\\r\n--data '{\"agreement_number\":\"\",\"airport_charges\":39.0,\"airport_id\":0,\"airport_return_id\":0,\"app_language\":1,\"app_version\":\"1.7.9\",\"babyseat_extended_amount\":0.0,\"booking_hour\":10,\"id\":0,\"Booking_Kilometers\":0.0,\"bosterseat_extended_amount\":0.0,\"car_available_id\":420,\"car_color\":\"\",\"car_image\":\"\",\"car_name\":\"\",\"name_ar\":\"\",\"car_number_plate\":\"\",\"cat_id\":2,\"change_delivery_location_reminder\":0,\"city_id\":1,\"collection_charges\":39.0,\"collection_driver_image\":\"\",\"collection_driver_name\":\"\",\"collection_driver_number\":\"\",\"confirmed_attribution\":0,\"contract_id\":0,\"customer_driver_rating\":0.0,\"DIR\":10.0,\"dr\":0.0,\"drg\":10.5,\"daily_rate\":10.0,\"deliver_rate\":35.1,\"deliver_date\":\"2023-06-02T00:00:00.000+0500\",\"deliver_date_string\":\"02/06/2023\",\"Delivery_feedback\":1,\"delivery_location_lat\":25.039776931077842,\"deliver_at\":\"25.039776931077842,55.221952870488174\",\"delivery_location\":\"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\"delivery_location_lng\":55.221952870488174,\"deliver_time\":\"2023-06-02T16:30:07.380+0500\",\"deliver_time_string\":\"16:30\",\"deposit_card_id\":0,\"discount\":0.0,\"driver_extended_amount\":0.0,\"driver_id\":0,\"driver_image\":\"\",\"driver_name\":\"\",\"driver_number\":\"\",\"early_return\":false,\"email_outstanding\":0.0,\"delivery_feedback_time\":\"\",\"extended_amount\":0.0,\"extended_days\":0,\"extended_discount\":0.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"gps_extended_amount\":0.0,\"hrg\":0.0,\"insurance\":0.0,\"insurance_extended_amount\":0.0,\"is_dispatched_booking\":0,\"MIR\":5.0,\"mr\":0.0,\"mrg\":5.0,\"millage_id\":0,\"days\":1.0,\"os_version\":\"10\",\"old_booking_charge\":{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"\",\"charge\":0.0,\"charge_type_id\":0,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":0.0,\"from_date\":\"\",\"id\":0,\"is_paid\":0,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"\",\"total_charge\":0.0,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},\"browser_name\":\"ANDROID\",\"monthly_optimization_enabled\":0,\"overtime_rate\":0.0,\"pai\":0.0,\"pai_extended_amount\":0.0,\"payment\":{\"amount\":8883.0,\"booking_id\":0,\"is_capture\":0,\"pay_id\":\"\",\"payment_action\":\"Booking Generate Android\",\"payment_currency\":\"AED\",\"status\":\"\",\"token\":\"src_hfqhdv4fkf2uve3v2epvkxexru\",\"user_id\":403169},\"payment_cc\":0.0,\"payment_type_id\":1,\"Promo_Code\":\"\",\"PROMO_CODE_ID\":0,\"rent_extended_amount\":0.0,\"rental_end_feedback\":0,\"rental_type_id\":1,\"return_city_id\":1,\"return_date\":\"2023-06-03T00:00:00.000+0500\",\"return_date_string\":\"03/06/2023\",\"return_location_lat\":25.039747769641853,\"return_at\":\"25.039747769641853,55.221952870488174\",\"collection_location\":\"Unnamed Road - Dubai Sports City - Dubai - United Arab Emirates\",\"return_location_lng\":55.221952870488174,\"return_date_old\":\"\",\"return_time\":\"2023-06-02T00:00:07.386+0500\",\"return_time_string\":\"00:00\",\"self_pickup_id\":0,\"self_pickup_status\":0,\"self_return_id\":0,\"self_return_status\":0,\"Source\":\"ANDROID\",\"status\":1,\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"amount\":88.83,\"total_charge\":0.0,\"owner_id\":403169,\"vat_rate\":5.0,\"vendor_id\":0,\"WIR\":8.0,\"wr\":0.0,\"wrg\":8.0,\"wallet_debit_amount\":0.0,\"actual_dr\":10.0,\"actual_mr\":5.0,\"actual_wr\":8.0,\"add_driver_active\":0,\"additional_delivery_info\":\"\",\"additional_drivers\":[],\"airport_return_id_old\":0,\"babe_seater\":0.0,\"baby_dr\":25.0,\"baby_mr\":5.0,\"baby_seat_active\":0,\"baby_wr\":15.0,\"boster_dr\":25.0,\"boster_mr\":5.0,\"boster_seat\":0.0,\"boster_seat_active\":0,\"boster_wr\":15.0,\"carSelected\":{\"base_fare\":1.0,\"booking_allowed\":1,\"car_desc\":\"0\",\"id\":420,\"picture\":\"2023/05/09/c932954a-bce.jpg\",\"picture_large\":\"2023/05/09/6d2e2541-3e6.jpg\",\"picture_new_app\":\"/media/2023/05/09/7d085492-892.jpg\",\"car_name\":\"Testing\",\"car_type_id\":390,\"cat_id\":2,\"city_id\":\"1,2,3\",\"DIR\":10.0,\"dr\":10.0,\"disable_car\":0,\"hourly_rate\":1.0,\"available\":1,\"kilometer_slabs\":[],\"MIR\":5.0,\"mr\":10.0,\"monthly_rate\":5.0,\"mcr\":6.0,\"NoOfDays\":0,\"monthly_optimization_enabled\":0,\"overtime_rate\":1.0,\"seats\":5,\"slabs_charges\":[],\"sub_cat_id\":29,\"TotalCharges\":0.0,\"WIR\":8.0,\"wr\":8.0,\"booking_hrs\":[],\"isSelected\":true,\"km_price\":0.0,\"kmpd\":0.0,\"kmpm\":0.0,\"kmpw\":0.0,\"minimum_days\":1,\"security_deposit\":1.0},\"chargeCustomer\":{\"Payment_date\":\"\",\"amount\":0,\"booking_id\":0,\"charge_type\":\"\",\"charge_type_response\":0,\"currency\":\"\",\"customer_ip\":\"\",\"fort_id\":\"\",\"is_capture\":0,\"is_success\":\"\",\"merchant_reference_id\":0,\"on_card\":\"\",\"payment_action\":\"\",\"user_id\":0},\"currency\":{\"additional_driver_text\":\"\",\"airport_charges\":0.0,\"city_id\":0,\"camount\":0.0,\"country_id\":0,\"curr\":\"\",\"curr_ar\":\"\",\"damount\":0.0,\"id\":0,\"insurance_info\":\"\",\"insurance_info_ar\":\"\",\"payment_currency\":\"\",\"payment_currency_ar\":\"\",\"tax_label\":\"\",\"tax\":0,\"terms_condition\":\"\",\"how_insurance_works\":\"\",\"how_insurance_works_ar\":\"\",\"operational_hour\":10,\"rental_type_id\":0},\"charge_customer_id\":1,\"charges\":[{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Rent\",\"charge\":10.5,\"charge_type_id\":4,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":10.5,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"RentVAT\",\"charge\":0.525,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":10.5,\"on_type\":4,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":0.525,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Collection VAT\",\"charge\":1.95,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":39.0,\"on_type\":3,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":1.95,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Collection\",\"charge\":39.0,\"charge_type_id\":3,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":39.0,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Delivery VAT\",\"charge\":1.755,\"charge_type_id\":20,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":35.1,\"on_type\":11,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":1.755,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"},{\"AddOnRate\":0.0,\"desc\":\"\",\"AddonIcon\":\"\",\"type_name\":\"Delivery\",\"charge\":35.1,\"charge_type_id\":11,\"comments\":\"\",\"dr\":0.0,\"days_extended\":0,\"ExtendedAmount\":0.0,\"frequency\":1.0,\"from_date\":\"2023-06-02T00:00:00.000+0500\",\"id\":0,\"is_paid\":1,\"mr\":0.0,\"on_amount\":0.0,\"on_type\":0,\"refund_to\":\"\",\"Source\":\"ANDROID\",\"to_date\":\"2023-06-03T00:00:00.000+0500\",\"total_charge\":35.1,\"TotalChargeOld\":0.0,\"wr\":0.0,\"active\":1,\"activeDays\":0,\"active_dates\":\"\",\"add\":true,\"amount\":0.0,\"area_title\":\"\",\"booking_id\":0,\"carDays\":false,\"collectioncahrges\":0.0,\"countNumber\":0,\"currency\":\"\",\"extraDayConversation\":1,\"from_date_addon\":\"\",\"isSelected\":false,\"order1\":1,\"promo_code_id\":0,\"sameDayActive\":false,\"showAddonInSummary\":false,\"showSwitchView\":false,\"to_date_addon\":\"\"}],\"cle\":0,\"cleaning_active\":0,\"cleaning_dr\":200.0,\"cleaning_mr\":200.0,\"cleaning_wr\":200.0,\"collection_location_old\":\"\",\"collection_reminder\":0,\"credit_card_discount\":0.0,\"current_date_time\":\"2023-06-02 20:26\",\"dailyChargesBooking\":10.5,\"delivery_instructions\":\"\",\"device_unique_id\":\"\",\"dilveryChargesBooking\":35.1,\"dilveryChargesBookingStatus\":true,\"driver_dr\":25.0,\"driver_mr\":5.0,\"driver_wr\":15.0,\"Extra_day_charge\":0,\"extraHour\":0,\"extra_day_charge_flag\":0,\"extra_driver\":0.0,\"extra_field1\":\"0\",\"extra_guard\":0.0,\"fort_id\":\"\",\"gps\":0.0,\"gps_active\":0,\"gps_dr\":25.0,\"gps_mr\":5.0,\"gps_wr\":15.0,\"guard_dr\":5.0,\"guard_extended_amount\":0.0,\"guard_mr\":3.0,\"guard_wr\":4.0,\"insurance_active\":0,\"interCityCharge\":{\"charge\":0.0,\"city_id\":0,\"city_name\":\"\",\"city_name_ar\":\"\"},\"isSameDay\":false,\"is_checkout\":1,\"km_price\":0.0,\"kmpd\":0.0,\"kmpm\":0.0,\"kmpw\":0.0,\"millages\":[],\"monthly_subscription \":0,\"monthly_subscription\":0,\"monthly_enabled\":0,\"pai_active\":0,\"pai_dr\":25.0,\"pai_mr\":5.0,\"pai_wr\":15.0,\"promo_details\":{\"car_available_id\":0,\"cat_id\":0,\"Daily_Discount_Value\":0.0,\"Discount_Value\":0.0,\"is_extension\":0,\"Monthly_Discount_Value\":0.0,\"Percent_type\":0,\"promo_code\":\"\",\"id\":0,\"user_id\":0,\"Weekly_Discount_Value\":0.0,\"bin_code\":0,\"daily_discount_cap\":0.0,\"discount_title\":\"\",\"is_only_for_extension\":0,\"max_discount\":0.0,\"monthly_discount_cap\":0.0,\"status\":\"\",\"weekly_discount_cap\":0.0},\"rentChargesBooking\":10.5,\"rentChargesBookingStatus\":true,\"return_city_id_old\":0,\"security_guard_active\":0,\"selectedSlab\":{\"base_slab\":0,\"extra_hour_rate\":0.0,\"hour_rate\":0.0},\"self_pickup_id_old\":0,\"self_pickup_timings\":\"\",\"self_pickup_vendor_contact\":\"\",\"self_return_id_old\":0,\"self_return_timings\":\"\",\"self_return_vendor_contact\":\"\",\"session_id\":\"\",\"totalChargesBooking\":10.5,\"url3ds\":0,\"user_comments\":\"\"}'"
+					},
+					"response": []
+				},
+				{
+					"name": "cancel-booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// pm.environment.get(\"bookings\", bookings);\r",
+									"console.log(\"Booking cancelled\");\r",
+									"// pm.execution.setNextRequest(\"get bookings\"); "
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Source\": \"ANDROID\",\r\n    \"booking_id\": 0,\r\n    \"cancel_reason_id\": 11,\r\n    \"description\": \"\",\r\n    \"id\": {{cancel_bookingId}},\r\n    \"isSelected\": false,\r\n    \"reason\": \"\",\r\n    \"reason_ar\": \"\",\r\n    \"reason_id\": 0,\r\n    \"user_id\": {{userId}}\r\n}\r\n// {\"Source\":\"ANDROID\",\"booking_id\":0,\"cancel_reason_id\":11,\"description\":\"\",\"id\":170145,\"isSelected\":false,\"reason\":\"\",\"reason_ar\":\"\",\"reason_id\":0,\"user_id\":405718}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseUrl}}/cancelBooking/",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"cancelBooking",
+								""
+							]
+						}
 					},
 					"response": []
 				},
@@ -772,7 +943,8 @@
 									"var todayDate = new Date();",
 									"// Set nextDate by adding the random frequency to todayDate",
 									"var nextDate = new Date(todayDate); ",
-									"todayDate.setDate(todayDate.getDate() +1 );  // Create a new Date object to avoid modifying todayDate",
+									"todayDate.setDate(todayDate.getDate());  ",
+									"// todayDate.setDate(todayDate.getDate() +1 );  // Create a new Date object to avoid modifying todayDate",
 									"nextDate.setDate(todayDate.getDate() + randomFreq);  // Add 7 days (or any random frequency)",
 									"",
 									"// Format both dates",
@@ -895,12 +1067,12 @@
 									"// Set the flag variable to a new value\r",
 									"\r",
 									"//For Daily\r",
-									"// pm.environment.set(\"flag\", 1);\r",
-									"//console.log(\"Flag variable set to:\", pm.environment.get(\"flag\"));\r",
+									"pm.environment.set(\"flag\", 1);\r",
+									"console.log(\"Flag variable set to:\", pm.environment.get(\"flag\"));\r",
 									"\r",
 									"//For Monthly\r",
-									"pm.environment.set(\"flag\", 2);\r",
-									"console.log(\"Flag variable set to:\", pm.environment.get(\"flag\"));\r",
+									"// pm.environment.set(\"flag\", 2);\r",
+									"// console.log(\"Flag variable set to:\", pm.environment.get(\"flag\"));\r",
 									"\r",
 									"// //For Weekly\r",
 									"// pm.environment.set(\"flag\", 3);\r",
@@ -996,7 +1168,8 @@
 									" else{\r",
 									"\r",
 									"var bookingId1=jsonData.data.id\r",
-									"console.log(\"---Booking ID waith Card-----\"+bookingId1)\r",
+									"pm.environment.set(\"bookingId1\", bookingId1);\r",
+									"console.log(\"---Booking ID with Card-----\"+bookingId1)\r",
 									" }"
 								],
 								"type": "text/javascript",
@@ -1023,6 +1196,56 @@
 							],
 							"path": [
 								"bookingV6",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Driver-Available",
+			"item": [
+				{
+					"name": "available-my-driver",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Driver is available now\")"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\" : \"405224\",\r\n    \"active\" :   1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseUrl}}/update-driver-status/",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"update-driver-status",
 								""
 							]
 						}
